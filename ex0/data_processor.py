@@ -39,3 +39,20 @@ class NumericProcessor(DataProcessor):
         for item in items:
             self._data.append((self._index, str(item)))
             self._index += 1
+
+
+class TextProcessor(DataProcessor):
+    def validate(self, data) -> bool:
+        if isinstance(data, str):
+            return True
+        if isinstance(data, list):
+            return all(isinstance(item, str) for item in data)
+        return False
+
+    def ingest(self, data):
+        if not self.validate(data):
+            raise ValueError("Improper text data")
+        items = data if isinstance(data, list) else [data]
+        for item in items:
+            self._data.append((self._data, item))
+            self._index += 1
