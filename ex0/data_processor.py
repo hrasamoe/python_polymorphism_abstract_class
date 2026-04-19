@@ -56,3 +56,13 @@ class TextProcessor(DataProcessor):
         for item in items:
             self._data.append((self._data, item))
             self._index += 1
+
+
+class LogProcessor(DataProcessor):
+    def validate(self, data):
+        if isinstance(data, dict):
+            return (all(isinstance(k, str) and isinstance(v, str)
+                        for k, v in data.items()))
+        if isinstance(data, list):
+            return all(self.validate(i) for i in data if isinstance(i, dict))
+        return False
