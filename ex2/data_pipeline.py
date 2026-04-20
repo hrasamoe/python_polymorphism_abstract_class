@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, List
+from typing import Any, Tuple, List, Protocol
+
+
+class ExportPlugin(Protocol):
+    def process_outout(self, data: List[Tuple[int, str]]) -> None:
+        pass
 
 
 class DataProcessor(ABC):
@@ -77,6 +82,21 @@ class LogProcessor(DataProcessor):
             self._data.append((self._index, value_str))
             self._index += 1
             self.total_processed += 1
+
+
+class CSVExport:
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
+        print("CSV Output:")
+        print(','.join([val for _, val in data]))
+
+
+class JSONExport:
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
+        print("JSON Output:")
+        items: List[str] = []
+        for index, value in data:
+            items.append(f'"item_{index}": "{value}"')
+        print("{" + ", \n".join(items) + "}")
 
 
 class DataStream:
