@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from abc import ABC, abstractmethod
 from typing import Any, Tuple
 
@@ -60,8 +61,8 @@ class LogProcessor(DataProcessor):
         if isinstance(data, dict):
             return (all(isinstance(k, str) and isinstance(v, str)
                         for k, v in data.items()))
-        if isinstance(data, list):
-            return all(self.validate(i) for i in data if isinstance(i, dict))
+        if isinstance(data, list) and data:
+            return all(self.validate(i) and isinstance(i, dict) for i in data)
         return False
 
     def ingest(self, data: Any) -> None:
