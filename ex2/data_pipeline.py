@@ -3,11 +3,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Tuple, List, Protocol
 
 
-class ExportPlugin(Protocol):
-    def process_outout(self, data: List[Tuple[int, str]]) -> None:
-        pass
-
-
 class DataProcessor(ABC):
     def __init__(self) -> None:
         self._data: list[tuple[int, str]] = []
@@ -84,6 +79,11 @@ class LogProcessor(DataProcessor):
             self.total_processed += 1
 
 
+class ExportPlugin(Protocol):
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
+        pass
+
+
 class CSVExport:
     def process_output(self, data: List[Tuple[int, str]]) -> None:
         print("CSV Output:")
@@ -96,7 +96,7 @@ class JSONExport:
         items: List[str] = []
         for index, value in data:
             items.append(f'"item_{index}": "{value}"')
-        print("{" + ", \n".join(items) + "}")
+        print("{\n " + ", \n ".join(items) + "\n}")
 
 
 class DataStream:
@@ -120,15 +120,28 @@ class DataStream:
                         )
 
     def print_processors_stats(self) -> None:
+        print()
         print("== DataStream statistics ==")
         if not self._processors:
             print("No processor found, no data")
         for proc in self._processors:
-            name = proc.__class__.__name__.replace("Processor", "Test")
+            name = proc.__class__.__name__.replace("Processor", " Processor")
             total = proc.total_processed
             remaining = len(proc._data)
             print(f"{name}: total {total} items processed,"
                   f"remaining {remaining} on processor")
+
+    def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
+        for proc in self._processors:
+            extracted: List[Tuple[int, str]] = []
+            for _ in range(nb):
+                try:
+                    extracted.append(proc.output())
+                except Exception:
+                    break
+
+            if extracted:
+                plugin.process_output(extracted)
 
 
 if __name__ == "__main__":
@@ -138,8 +151,10 @@ if __name__ == "__main__":
     data_stream = DataStream()
     data_stream.print_processors_stats()
     print()
-    print("Registering Nmeric Processor")
+    print("Registering Processor")
     num_proc = NumericProcessor()
+    txt_proc = TextProcessor()
+    log_proc = LogProcessor()
     test = [
         'Hello world',
         [3.14, -1, 2.71],
@@ -152,25 +167,33 @@ if __name__ == "__main__":
         ['Hi', 'five']
     ]
     data_stream.register_processor(num_proc)
+    data_stream.register_processor(txt_proc)
+    data_stream.register_processor(log_proc)
     print()
     print("Send first batch of data on stream: " + str(test))
     data_stream.process_stream(test)
     data_stream.print_processors_stats()
     print()
-    print("Registering other data processors")
-    txt_proc = TextProcessor()
-    log_proc = LogProcessor()
-    data_stream.register_processor(txt_proc)
-    data_stream.register_processor(log_proc)
-    print("Send the same batch again")
-    data_stream.process_stream(test)
+    print("Send 3 processed data from each processor to CSV plugin:")
+    data_stream.output_pipeline(3, CSVExport())
+    print()
+    data_stream.print_processors_stats()
+    batch2 = [
+        21,
+        ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
+        [
+            {'log_level': 'ERROR', 'log_message': '500 server crash'},
+            {'log_level': 'NOTICE', 'log_message':
+             'Certificate expires in 10 days'}
+        ],
+        [32, 42, 64, 84, 128, 168],
+        'World hello'
+    ]
+    print()
+    print("Send another batch of data" + str(batch2))
+    data_stream.process_stream(batch2)
     data_stream.print_processors_stats()
     print()
-    print("Consume some elements from the data processors:"
-          " Numeric 3, Text 2 , Log 1")
-    for _ in range(3):
-        num_proc.output()
-    for _ in range(2):
-        txt_proc.output()
-    log_proc.output()
+    print("Send 5 processed data from each processor to a JSON Plugin:")
+    data_stream.output_pipeline(5, JSONExport())
     data_stream.print_processors_stats()

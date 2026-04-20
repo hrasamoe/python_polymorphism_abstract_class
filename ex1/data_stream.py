@@ -104,7 +104,7 @@ class DataStream:
         if not self._processors:
             print("No processor found, no data")
         for proc in self._processors:
-            name = proc.__class__.__name__.replace("Processor", "Test")
+            name = proc.__class__.__name__.replace("Processor", " Processor")
             total = proc.total_processed
             remaining = len(proc._data)
             print(f"{name}: total {total} items processed,"
