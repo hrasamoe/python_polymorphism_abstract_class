@@ -32,13 +32,16 @@ class NumericProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper numeric data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            self._data.append((self._index, str(item)))
-            self._index += 1
-            self.total_processed += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper numeric data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                self._data.append((self._index, str(item)))
+                self._index += 1
+                self.total_processed += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 class TextProcessor(DataProcessor):
@@ -50,13 +53,16 @@ class TextProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper text data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            self._data.append((self._index, item))
-            self._index += 1
-            self.total_processed += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper text data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                self._data.append((self._index, item))
+                self._index += 1
+                self.total_processed += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 class LogProcessor(DataProcessor):
@@ -69,14 +75,17 @@ class LogProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper log data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            value_str = ": ".join(item.values())
-            self._data.append((self._index, value_str))
-            self._index += 1
-            self.total_processed += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper log data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                value_str = ": ".join(item.values())
+                self._data.append((self._index, value_str))
+                self._index += 1
+                self.total_processed += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 class DataStream:

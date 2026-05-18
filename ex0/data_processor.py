@@ -31,12 +31,15 @@ class NumericProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper numeric data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            self._data.append((self._index, str(item)))
-            self._index += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper numeric data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                self._data.append((self._index, str(item)))
+                self._index += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 class TextProcessor(DataProcessor):
@@ -48,12 +51,15 @@ class TextProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper text data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            self._data.append((self._index, item))
-            self._index += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper text data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                self._data.append((self._index, item))
+                self._index += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 class LogProcessor(DataProcessor):
@@ -66,13 +72,16 @@ class LogProcessor(DataProcessor):
         return False
 
     def ingest(self, data: Any) -> None:
-        if not self.validate(data):
-            raise ValueError("Improper log data")
-        items = data if isinstance(data, list) else [data]
-        for item in items:
-            value_str = ": ".join(item.values())
-            self._data.append((self._index, value_str))
-            self._index += 1
+        try:
+            if not self.validate(data):
+                raise ValueError("Improper log data")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                value_str = ": ".join(item.values())
+                self._data.append((self._index, value_str))
+                self._index += 1
+        except ValueError as e:
+            print(f"Error: {e}")
 
 
 if __name__ == "__main__":
@@ -82,10 +91,7 @@ if __name__ == "__main__":
     print(f" Trying to validate input '42': {num_proc.validate(42)}")
     print(f" Trying to validate input 'Hello': {num_proc.validate('Hello')}")
     print(" Test invalid ingestion of string 'foo' without prior validation:")
-    try:
-        num_proc.ingest('foo')
-    except Exception as e:
-        print(f" Got exception: {e}")
+    num_proc.ingest('foo')
     num_proc.ingest([1, 2, 3, 4, 5])
     print(" Processing data: [1, 2, 3, 4, 5]")
     print(" Extracting 3 values...")
@@ -96,6 +102,8 @@ if __name__ == "__main__":
     print("Testing Text Processor...")
     txt_p = TextProcessor()
     print(f" Trying to validate input '42': {txt_p.validate(42)}")
+    print(" Test invalid ingestion of integer 42 without prior validation:")
+    txt_p.ingest(42)
     txt_p.ingest(["Hello", "Nexus", "World"])
     print(" Processing data: ['Hello', 'Nexus', 'World']")
     print(" Extracting 1 value...")
@@ -105,6 +113,9 @@ if __name__ == "__main__":
     print("Testing Log Processor...")
     log_p = LogProcessor()
     print(f" Trying to validate input 'Hello': {log_p.validate('Hello')}")
+    print(" Test invalid ingestion of string 'Hello' "
+          "without prior validation:")
+    log_p.ingest('Hello')
     logs = [
         {"log_level": "NOTICE", "msg": "Connection to server"},
         {"log_level": "ERROR", "msg": "Unauthorized access!!"}
